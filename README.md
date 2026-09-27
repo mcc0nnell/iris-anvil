@@ -22,7 +22,7 @@ Management is split into two surfaces. `/anvil/api` is the unauthenticated read/
 
 The browser never receives Sling credentials.
 
-The cockpit also includes a read-only scheduled-task inventory using the official `GET /api/admin/v2/tasks` endpoint. This adds task-management visibility without granting the observation control the authority to mutate or run tasks.
+The cockpit also includes a read-only operational inventory using the official `GET /api/admin/info`, `GET /api/admin/v2/processes`, and `GET /api/admin/v2/tasks` endpoints. This adds authenticated authority discovery, operating-system/process visibility, and task-management visibility without granting the observation control authority to mutate, suspend, terminate, or run anything.
 
 ## Safety model
 
@@ -122,4 +122,4 @@ The implemented path is intentionally narrow but real:
 7. Mirror verified evidence into Sling/Oak.
 8. Render the live state in the ECharts Change Reactor cockpit.
 
-The **SCAN TASKS** control authenticates through the same in-memory SysAdmin session and reports the current scheduled-task count. It performs no mutation and stores no credentials.
+The **SCAN IRIS** control authenticates through the same in-memory SysAdmin session and reports current live-process and scheduled-task counts. It performs no mutation and stores no credentials.
