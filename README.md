@@ -1,5 +1,10 @@
 # IRIS Anvil
 
+![IRIS Anvil logo](web/iris-anvil-logo.png)
+
+[Watch the live IRIS 2026.2 demo](docs/iris-anvil-demo.webm) ·
+[View the verified cockpit and walkthrough](docs/DEMO.md)
+
 IRIS Anvil is a proof-first management cockpit for InterSystems IRIS.
 
 See [RELEASE_NOTES.md](RELEASE_NOTES.md) for the latest verified changes and

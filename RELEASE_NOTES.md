@@ -17,6 +17,8 @@ IRIS 2026.2 workflow. The supported mutation remains deliberately narrow:
   fresh, disposable local demo container.
 - Authenticated read-only observation through `/api/admin/info`,
   `/api/admin/v2/processes`, and `/api/admin/v2/tasks`.
+- Inspectable process and scheduled-task tables in the cockpit, plus a silent
+  live demo capture and a screenshot in `docs/`.
 - A contract gate covering the official SysAdmin endpoints, bearer boundary,
   allowlist, receipt construction, and both REST bootstrap surfaces.
 
