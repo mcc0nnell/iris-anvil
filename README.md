@@ -22,6 +22,8 @@ Management is split into two surfaces. `/anvil/api` is the unauthenticated read/
 
 The browser never receives Sling credentials.
 
+The cockpit also includes a read-only scheduled-task inventory using the official `GET /api/admin/v2/tasks` endpoint. This adds task-management visibility without granting the observation control the authority to mutate or run tasks.
+
 ## Safety model
 
 The current demo allowlists only `DEPLOY_WEB_APP` for the exact target `/anvil-demo`. Anything else is rejected by the execution endpoint. The official SysAdmin API performs the mutation; Anvil will seal a receipt only after both the SysAdmin API readback and its independent ObjectScript readback match the declared state. The proposal digest is independent from the execution receipt so both intent and execution can be checked.
@@ -119,3 +121,5 @@ The implemented path is intentionally narrow but real:
 6. Seal an execution receipt.
 7. Mirror verified evidence into Sling/Oak.
 8. Render the live state in the ECharts Change Reactor cockpit.
+
+The **SCAN TASKS** control authenticates through the same in-memory SysAdmin session and reports the current scheduled-task count. It performs no mutation and stores no credentials.
