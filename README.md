@@ -108,6 +108,7 @@ Each mirrored execution contains the IRIS state, action, target, proposal digest
 - `docker-compose.anvil.yml` uses the exact IRIS and Sling images exercised by the demo.
 - IRIS and Sling communicate over the dedicated `iris-anvil-net` Docker network.
 - Oak persists in a named Docker volume.
+- The fast `IRIS Anvil contract` workflow pins the required official SysAdmin endpoints, bearer-token boundary, idempotency key, allowlist, independent readback, and receipt construction on every push and pull request.
 
 ## Current vertical slice
 
