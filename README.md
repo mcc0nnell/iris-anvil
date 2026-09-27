@@ -1,6 +1,6 @@
 # IRIS Anvil
 
-![IRIS Anvil logo](web/iris-anvil-logo.png)
+<img src="web/iris-anvil-logo.png" width="280" alt="IRIS Anvil logo">
 
 [Watch the live IRIS 2026.2 demo](docs/iris-anvil-demo.webm) ·
 [View the verified cockpit and walkthrough](docs/DEMO.md)
