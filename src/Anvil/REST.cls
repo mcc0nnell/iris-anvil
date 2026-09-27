@@ -104,18 +104,6 @@ ClassMethod AppGet(name As %String, ByRef props) As %Status
  Quit ##class(Security.Applications).Get(name,.props)
 }
 
-ClassMethod AppCreate(name As %String, ByRef props) As %Status
-{
- New $Namespace Set $Namespace="%SYS"
- Quit ##class(Security.Applications).Create(name,.props)
-}
-
-ClassMethod AppModify(name As %String, ByRef props) As %Status
-{
- New $Namespace Set $Namespace="%SYS"
- Quit ##class(Security.Applications).Modify(name,.props)
-}
-
 ClassMethod Execute(id As %Integer) As %Status
 {
  Set row=$Get(^Anvil.Ledger(id))
@@ -139,19 +127,9 @@ ClassMethod Execute(id As %Integer) As %Status
    Quit ..Send(e,403)
  }
  Set desiredNS="USER",desiredDispatch="Anvil.REST"
- Kill before Set beforeSC=..AppGet(target,.before)
- Kill props
- Set props("NameSpace")=desiredNS,props("DispatchClass")=desiredDispatch,props("Enabled")=1
- If $System.Status.IsOK(beforeSC) {
-   Set sc=..AppModify(target,.props)
- } Else {
-   Set props("AutheEnabled")=64
-   Set sc=..AppCreate(target,.props)
- }
- If '$System.Status.IsOK(sc) {
-   Set e=##class(%DynamicObject).%New(),e.error=$System.Status.GetErrorText(sc)
-   Quit ..Send(e,500)
- }
+ // The mutation is deliberately performed by the browser through the official
+ // IRIS 2026.2 SysAdmin API: PUT /api/admin/v2/web-app?name=/anvil-demo.
+ // Anvil is the proposal, independent readback, and receipt boundary.
  Kill after Set afterSC=..AppGet(target,.after)
  If '$System.Status.IsOK(afterSC) {
    Set e=##class(%DynamicObject).%New(),e.error=$System.Status.GetErrorText(afterSC)
@@ -166,7 +144,7 @@ ClassMethod Execute(id As %Integer) As %Status
  Set receipt=..Digest("iris-anvil/receipt/v2|"_id_"|"_$List(row,5)_"|"_actual)
  Set $List(row,1)="EXECUTED",$List(row,7)=receipt,^Anvil.Ledger(id)=row
  Set o=##class(%DynamicObject).%New()
- Set o.id=id,o.state="EXECUTED",o.receipt=receipt,o.verified=1,o.actual=actual
+ Set o.id=id,o.state="EXECUTED",o.receipt=receipt,o.verified=1,o.actual=actual,o.executor="IRIS SysAdmin API /api/admin/v2/web-app"
  Quit ..Send(o)
 }
 
