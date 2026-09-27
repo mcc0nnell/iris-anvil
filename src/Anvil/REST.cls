@@ -60,7 +60,7 @@ ClassMethod ReactorNodes() As %DynamicArray
 ClassMethod Plan() As %Status
 {
  Set o=##class(%DynamicObject).%New()
- Set o.id="verified-change",o.label="Verified IRIS Change",o.lifecycle="maven-reactor"
+ Set o.id="deploy-webapp",o.label="Deploy IRIS Web Application",o.lifecycle="maven-reactor"
  Set o.nodes=..ReactorNodes()
  Quit ..Send(o)
 }
@@ -97,6 +97,25 @@ ClassMethod Propose() As %Status
  Quit ..Send(o,201)
 }
 
+
+ClassMethod AppGet(name As %String, ByRef props) As %Status
+{
+ New $Namespace Set $Namespace="%SYS"
+ Quit ##class(Security.Applications).Get(name,.props)
+}
+
+ClassMethod AppCreate(name As %String, ByRef props) As %Status
+{
+ New $Namespace Set $Namespace="%SYS"
+ Quit ##class(Security.Applications).Create(name,.props)
+}
+
+ClassMethod AppModify(name As %String, ByRef props) As %Status
+{
+ New $Namespace Set $Namespace="%SYS"
+ Quit ##class(Security.Applications).Modify(name,.props)
+}
+
 ClassMethod Execute(id As %Integer) As %Status
 {
  Set row=$Get(^Anvil.Ledger(id))
@@ -110,15 +129,44 @@ ClassMethod Execute(id As %Integer) As %Status
    Quit ..Send(o)
  }
  Set action=$List(row,2)
- If action'="SET_DEMO_FLAG" {
+ If action'="DEPLOY_WEB_APP" {
    Set e=##class(%DynamicObject).%New(),e.error="action not allowlisted"
    Quit ..Send(e,403)
  }
- Set ^Anvil.Demo($List(row,3))=$List(row,4)
- Set receipt=..Digest("iris-anvil/receipt/v1|"_id_"|"_$List(row,5)_"|EXECUTED")
+ Set target=$List(row,3)
+ If target'="/anvil-demo" {
+   Set e=##class(%DynamicObject).%New(),e.error="target not allowlisted"
+   Quit ..Send(e,403)
+ }
+ Set desiredNS="USER",desiredDispatch="Anvil.REST"
+ Kill before Set beforeSC=..AppGet(target,.before)
+ Kill props
+ Set props("NameSpace")=desiredNS,props("DispatchClass")=desiredDispatch,props("Enabled")=1
+ If $System.Status.IsOK(beforeSC) {
+   Set sc=..AppModify(target,.props)
+ } Else {
+   Set props("AutheEnabled")=64
+   Set sc=..AppCreate(target,.props)
+ }
+ If '$System.Status.IsOK(sc) {
+   Set e=##class(%DynamicObject).%New(),e.error=$System.Status.GetErrorText(sc)
+   Quit ..Send(e,500)
+ }
+ Kill after Set afterSC=..AppGet(target,.after)
+ If '$System.Status.IsOK(afterSC) {
+   Set e=##class(%DynamicObject).%New(),e.error=$System.Status.GetErrorText(afterSC)
+   Quit ..Send(e,500)
+ }
+ Set actual="NameSpace="_$Get(after("NameSpace"))_"|DispatchClass="_$Get(after("DispatchClass"))_"|Enabled="_$Get(after("Enabled"))
+ Set verified=($Get(after("NameSpace"))=desiredNS)&($Get(after("DispatchClass"))=desiredDispatch)&($Get(after("Enabled"))=1)
+ If 'verified {
+   Set e=##class(%DynamicObject).%New(),e.error="postcondition mismatch",e.actual=actual
+   Quit ..Send(e,409)
+ }
+ Set receipt=..Digest("iris-anvil/receipt/v2|"_id_"|"_$List(row,5)_"|"_actual)
  Set $List(row,1)="EXECUTED",$List(row,7)=receipt,^Anvil.Ledger(id)=row
  Set o=##class(%DynamicObject).%New()
- Set o.id=id,o.state="EXECUTED",o.receipt=receipt,o.verified=1
+ Set o.id=id,o.state="EXECUTED",o.receipt=receipt,o.verified=1,o.actual=actual
  Quit ..Send(o)
 }
 
@@ -132,7 +180,12 @@ ClassMethod Verify(id As %Integer) As %Status
  Set expected=..Digest("iris-anvil/v2|"_$List(row,2)_"|"_$List(row,3)_"|"_$List(row,4))
  If expected'=$List(row,5) Set expected=..Digest("iris-anvil/v1|"_$List(row,2)_"|"_$List(row,3)_"|"_$List(row,4))
  Set o=##class(%DynamicObject).%New()
- Set o.id=id,o.state=$List(row,1),o.verified=(expected=$List(row,5)),o.digest=$List(row,5),o.receipt=$ListGet(row,7)
+ Set verified=(expected=$List(row,5))
+ If $List(row,2)="DEPLOY_WEB_APP" {
+   Kill actualProps Set appSC=..AppGet($List(row,3),.actualProps)
+   Set verified=verified&$System.Status.IsOK(appSC)&($Get(actualProps("NameSpace"))="USER")&($Get(actualProps("DispatchClass"))="Anvil.REST")&($Get(actualProps("Enabled"))=1)
+ }
+ Set o.id=id,o.state=$List(row,1),o.verified=verified,o.digest=$List(row,5),o.receipt=$ListGet(row,7)
  Quit ..Send(o)
 }
 

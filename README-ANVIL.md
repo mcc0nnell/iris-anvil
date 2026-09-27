@@ -8,6 +8,10 @@ Administrative work is modeled as a deterministic reactor:
 
 Every proposed change gets a canonical SHA-256 digest. Execution is restricted to an explicit allowlist, verification re-derives the proposal digest, and successful runs seal a separate execution receipt. Proposal commands support idempotency keys, and repeat execution returns the original sealed receipt rather than applying the change twice. Verified evidence can be mirrored into Apache Sling / Jackrabbit Oak.
 
+The first real management cartridge is `DEPLOY_WEB_APP`. It is deliberately constrained to `/anvil-demo`, `NameSpace=USER`, `DispatchClass=Anvil.REST`, and `Enabled=1`. It uses the published `Security.Applications.Get/Create/Modify` API in `%SYS`, rereads the resulting application definition, verifies those postconditions, and binds the observed state into the execution receipt.
+
+Management is split into two surfaces. `/anvil/api` is the unauthenticated read/program feed. `/anvil/admin` uses IRIS password authentication and is the producer/mutation surface; the operator must authenticate with an IRIS account authorized for `%Admin_Secure:USE`. The browser asks for those credentials only when a reactor run is requested and retains them only in memory.
+
 ## Stack
 
 - **InterSystems IRIS 2026.1** — authoritative runtime, ObjectScript API, ledger, execution boundary
