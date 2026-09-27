@@ -44,11 +44,42 @@ Bootstrap the IRIS class and web applications:
 ./scripts/bootstrap.sh
 ```
 
+For a fresh, disposable local demo container, create a randomly generated operator:
+
+```bash
+python3 scripts/create_demo_operator.py
+```
+
+The command prints the `AnvilDemo` password once. Enter that username and password
+when the cockpit asks for IRIS credentials. This local demo account has `%All` in
+the dedicated container; use an appropriately authorized account in any other
+environment. Do not expose the demo ports to an untrusted network.
+
 Open the cockpit:
 
 ```text
 http://localhost:52773/anvil/index.html
 ```
+
+Click **RUN REACTOR** to exercise the bounded `/anvil-demo` change, or **SCAN IRIS**
+to view live process and scheduled-task counts. Both controls require the operator.
+The cockpit retains credentials and the SysAdmin bearer token only in the open page.
+
+To reproduce the full server-side integration check, set the operator credentials
+in the current shell and run:
+
+```bash
+export ANVIL_OPERATOR_USER=AnvilDemo
+read -rs -p 'AnvilDemo password: ' ANVIL_OPERATOR_PASSWORD; echo
+export ANVIL_OPERATOR_PASSWORD
+python3 scripts/smoke_iris.py
+unset ANVIL_OPERATOR_PASSWORD
+```
+
+The smoke check requires IRIS 2026.2. It tests a planned proposal cannot verify,
+then exercises the official SysAdmin login, web-app PUT and GET, independent
+ObjectScript receipt, idempotent replay, and read-only process and task endpoints.
+It only changes `/anvil-demo`.
 
 Sling runs on host port `8082`. Its Oak repository is persisted by the named volume mounted at `/opt/sling/launcher`.
 
@@ -105,10 +136,10 @@ Each mirrored execution contains the IRIS state, action, target, proposal digest
 
 - ECharts is vendored at `web/echarts.min.js`; the cockpit has no CDN dependency.
 - `scripts/bootstrap.sh` is idempotent.
-- `docker-compose.anvil.yml` uses the exact IRIS and Sling images exercised by the demo.
+- `docker-compose.anvil.yml` pins IRIS Community to `2026.2` and Sling to `14`.
 - IRIS and Sling communicate over the dedicated `iris-anvil-net` Docker network.
 - Oak persists in a named Docker volume.
-- The fast `IRIS Anvil contract` workflow pins the required official SysAdmin endpoints, bearer-token boundary, idempotency key, allowlist, independent readback, and receipt construction on every push and pull request.
+- The fast `IRIS Anvil contract` workflow checks the required API and safety code paths on every push and pull request. Run `scripts/smoke_iris.py` for a live IRIS integration check.
 
 ## Current vertical slice
 

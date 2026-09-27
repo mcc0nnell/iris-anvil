@@ -10,6 +10,7 @@ const requiredWebContracts = [
   "'/v2/processes?maxRows=100'",
   "'/v2/tasks?maxRows=100'",
   "Authorization:'Bearer '+sysAdminToken",
+  "sysAdminToken=auth.access_token",
   "idempotencyKey:'ui-'+crypto.randomUUID()",
 ];
 
@@ -20,6 +21,11 @@ const requiredServerContracts = [
   'iris-anvil/receipt/v2|',
   'Security.Applications).Get',
 ];
+
+const bootstrap = readFileSync(new URL('bootstrap_iris.scr', import.meta.url), 'utf8');
+if (!bootstrap.includes('Anvil/Public.cls') || !bootstrap.includes('Anvil/REST.cls')) {
+  throw new Error('bootstrap must compile both public and authenticated REST surfaces');
+}
 
 for (const contract of requiredWebContracts) {
   if (!web.includes(contract)) throw new Error(`missing browser contract: ${contract}`);

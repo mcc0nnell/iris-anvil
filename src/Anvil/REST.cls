@@ -81,6 +81,10 @@ ClassMethod Propose() As %Status
    Set e=##class(%DynamicObject).%New(),e.error="action and target required"
    Quit ..Send(e,400)
  }
+ If (action'="DEPLOY_WEB_APP")!(target'="/anvil-demo")!(payload'="NameSpace=USER|DispatchClass=Anvil.REST|Enabled=1") {
+   Set e=##class(%DynamicObject).%New(),e.error="proposal is outside the demo allowlist"
+   Quit ..Send(e,403)
+ }
  If (key'=""),$Data(^Anvil.Idempotency(key)) {
    Set id=^Anvil.Idempotency(key),row=$Get(^Anvil.Ledger(id))
    Set o=##class(%DynamicObject).%New()
@@ -112,9 +116,7 @@ ClassMethod Execute(id As %Integer) As %Status
    Quit ..Send(e,404)
  }
  If $List(row,1)="EXECUTED" {
-   Set o=##class(%DynamicObject).%New()
-   Set o.id=id,o.state="EXECUTED",o.receipt=$ListGet(row,7),o.verified=1,o.duplicate=1
-   Quit ..Send(o)
+   Quit ..Verify(id)
  }
  Set action=$List(row,2)
  If action'="DEPLOY_WEB_APP" {
@@ -125,6 +127,10 @@ ClassMethod Execute(id As %Integer) As %Status
  If target'="/anvil-demo" {
    Set e=##class(%DynamicObject).%New(),e.error="target not allowlisted"
    Quit ..Send(e,403)
+ }
+ If ($List(row,4)'="NameSpace=USER|DispatchClass=Anvil.REST|Enabled=1")!(..Digest("iris-anvil/v2|"_action_"|"_target_"|"_$List(row,4))'=$List(row,5)) {
+   Set e=##class(%DynamicObject).%New(),e.error="proposal payload or digest mismatch"
+   Quit ..Send(e,409)
  }
  Set desiredNS="USER",desiredDispatch="Anvil.REST"
  // The mutation is deliberately performed by the browser through the official
@@ -156,12 +162,15 @@ ClassMethod Verify(id As %Integer) As %Status
    Quit ..Send(e,404)
  }
  Set expected=..Digest("iris-anvil/v2|"_$List(row,2)_"|"_$List(row,3)_"|"_$List(row,4))
- If expected'=$List(row,5) Set expected=..Digest("iris-anvil/v1|"_$List(row,2)_"|"_$List(row,3)_"|"_$List(row,4))
  Set o=##class(%DynamicObject).%New()
- Set verified=(expected=$List(row,5))
+ Set verified=($List(row,1)="EXECUTED")&(expected=$List(row,5))&($List(row,2)="DEPLOY_WEB_APP")&($List(row,3)="/anvil-demo")&($List(row,4)="NameSpace=USER|DispatchClass=Anvil.REST|Enabled=1")
  If $List(row,2)="DEPLOY_WEB_APP" {
    Kill actualProps Set appSC=..AppGet($List(row,3),.actualProps)
    Set verified=verified&$System.Status.IsOK(appSC)&($Get(actualProps("NameSpace"))="USER")&($Get(actualProps("DispatchClass"))="Anvil.REST")&($Get(actualProps("Enabled"))=1)
+   If verified {
+     Set actual="NameSpace="_$Get(actualProps("NameSpace"))_"|DispatchClass="_$Get(actualProps("DispatchClass"))_"|Enabled="_$Get(actualProps("Enabled"))
+     Set verified=($ListGet(row,7)=..Digest("iris-anvil/receipt/v2|"_id_"|"_$List(row,5)_"|"_actual))
+   }
  }
  Set o.id=id,o.state=$List(row,1),o.verified=verified,o.digest=$List(row,5),o.receipt=$ListGet(row,7)
  Quit ..Send(o)

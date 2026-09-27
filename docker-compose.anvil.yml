@@ -1,6 +1,6 @@
 services:
   iris:
-    image: intersystems/iris-community:latest-em
+    image: intersystems/iris-community:2026.2
     container_name: iris-anvil-iris
     command: --check-caps false
     ports:

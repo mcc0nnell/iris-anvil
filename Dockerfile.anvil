@@ -1,4 +1,4 @@
-FROM intersystems/iris-community:latest-em
+FROM intersystems/iris-community:2026.2
 USER root
 WORKDIR /opt/irisanvil
 COPY src /opt/irisanvil/src
