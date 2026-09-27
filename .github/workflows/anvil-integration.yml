@@ -1,0 +1,47 @@
+name: IRIS Anvil integration
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  iris-2026-2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start isolated IRIS 2026.2
+        run: |
+          docker run -d --name iris-anvil-iris \
+            -p 127.0.0.1:52773:52773 \
+            -v "$PWD/src:/opt/irisanvil/src:ro" \
+            -v "$PWD/web:/usr/irissys/csp/anvil-ui:ro" \
+            intersystems/iris-community:2026.2 --check-caps false
+      - name: Bootstrap both REST surfaces
+        run: ./scripts/bootstrap.sh
+      - name: Exercise official SysAdmin API and receipt
+        run: |
+          python3 - <<'PY'
+          import os
+          import subprocess
+
+          operator = subprocess.run(
+              ["python3", "scripts/create_demo_operator.py"],
+              capture_output=True, text=True, check=True,
+          )
+          password = next(
+              line.split("=", 1)[1] for line in operator.stdout.splitlines()
+              if line.startswith("ANVIL_OPERATOR_PASSWORD=")
+          )
+          env = dict(os.environ, ANVIL_OPERATOR_USER="AnvilDemo",
+                     ANVIL_OPERATOR_PASSWORD=password)
+          subprocess.run(["python3", "scripts/smoke_iris.py"],
+                         env=env, check=True)
+          PY
+      - name: IRIS logs on failure
+        if: failure()
+        run: docker logs --tail 150 iris-anvil-iris
