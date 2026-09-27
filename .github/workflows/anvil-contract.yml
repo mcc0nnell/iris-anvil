@@ -1,0 +1,22 @@
+name: IRIS Anvil contract
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify official SysAdmin and safety contracts
+        run: node scripts/check_contract.mjs
+      - name: Parse cockpit JavaScript
+        run: |
+          node -e 'const fs=require("fs");const s=fs.readFileSync("web/index.html","utf8");const m=s.match(/<script>([\s\S]*)<\/script>/);if(!m)throw Error("script missing");new Function(m[1])'
