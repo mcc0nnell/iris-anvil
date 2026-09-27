@@ -2,6 +2,9 @@
 
 IRIS Anvil is a proof-first management cockpit for InterSystems IRIS.
 
+See [RELEASE_NOTES.md](RELEASE_NOTES.md) for the latest verified changes and
+upgrade notes.
+
 Administrative work is modeled as a deterministic reactor:
 
 **Validate → Resolve → Plan → Execute → Verify → Receipt**
