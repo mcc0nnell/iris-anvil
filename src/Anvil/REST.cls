@@ -60,7 +60,7 @@ ClassMethod ReactorNodes() As %DynamicArray
 ClassMethod Plan() As %Status
 {
  Set o=##class(%DynamicObject).%New()
- Set o.id="deploy-webapp",o.label="Deploy Web Application",o.lifecycle="maven-reactor"
+ Set o.id="verified-change",o.label="Verified IRIS Change",o.lifecycle="maven-reactor"
  Set o.nodes=..ReactorNodes()
  Quit ..Send(o)
 }
