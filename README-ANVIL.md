@@ -8,13 +8,13 @@ Administrative work is modeled as a deterministic reactor:
 
 Every proposed change gets a canonical SHA-256 digest. Execution is restricted to an explicit allowlist, verification re-derives the proposal digest, and successful runs seal a separate execution receipt. Proposal commands support idempotency keys, and repeat execution returns the original sealed receipt rather than applying the change twice. Verified evidence can be mirrored into Apache Sling / Jackrabbit Oak.
 
-The first real management cartridge is `DEPLOY_WEB_APP`. It is deliberately constrained to `/anvil-demo`, `NameSpace=USER`, `DispatchClass=Anvil.REST`, and `Enabled=1`. It uses the published `Security.Applications.Get/Create/Modify` API in `%SYS`, rereads the resulting application definition, verifies those postconditions, and binds the observed state into the execution receipt.
+The first real management cartridge is `DEPLOY_WEB_APP`. It is deliberately constrained to `/anvil-demo`, `NameSpace=USER`, `DispatchClass=Anvil.REST`, and `Enabled=1`. The browser authenticates through the official IRIS 2026.2 SysAdmin API at `POST /api/admin/login`, performs the change with `PUT /api/admin/v2/web-app`, and reads it back with `GET /api/admin/v2/web-app`. Anvil then independently rereads the application through ObjectScript, verifies the postconditions, and binds the observed state into the execution receipt.
 
 Management is split into two surfaces. `/anvil/api` is the unauthenticated read/program feed. `/anvil/admin` uses IRIS password authentication and is the producer/mutation surface; the operator must authenticate with an IRIS account authorized for `%Admin_Secure:USE`. The browser asks for those credentials only when a reactor run is requested and retains them only in memory.
 
 ## Stack
 
-- **InterSystems IRIS 2026.1** — authoritative runtime, ObjectScript API, ledger, execution boundary
+- **InterSystems IRIS 2026.2** — official `/api/admin` SysAdmin API, authoritative runtime, ObjectScript verifier, ledger, receipt boundary
 - **Apache Sling 14** — resource-oriented evidence plane
 - **Apache Jackrabbit Oak** — persistent repository behind Sling
 - **Apache ECharts 6** — vendored visualization runtime for the Change Reactor cockpit
@@ -24,11 +24,7 @@ The browser never receives Sling credentials.
 
 ## Safety model
 
-The current demo allowlists only:
-
-`SET_DEMO_FLAG`
-
-Anything else is rejected by the execution endpoint. The proposal digest is independent from the execution receipt so both intent and execution can be checked.
+The current demo allowlists only `DEPLOY_WEB_APP` for the exact target `/anvil-demo`. Anything else is rejected by the execution endpoint. The official SysAdmin API performs the mutation; Anvil will seal a receipt only after both the SysAdmin API readback and its independent ObjectScript readback match the declared state. The proposal digest is independent from the execution receipt so both intent and execution can be checked.
 
 The contest container grants unauthenticated CSP requests the built-in `%DB_USER` role so the public demo can execute the REST class in the USER namespace. This is intentionally scoped to the dedicated demo container and should not be copied into a shared production IRIS instance.
 
@@ -65,22 +61,22 @@ curl http://localhost:52773/anvil/api/reactor/plan
 Create a proposal:
 
 ```bash
-curl -X POST \
+curl -u 'operator:password' -X POST \
   -H 'Content-Type: application/json' \
-  --data '{"action":"SET_DEMO_FLAG","target":"cockpit.banner","payload":"reviewed"}' \
-  http://localhost:52773/anvil/api/proposals
+  --data '{"action":"DEPLOY_WEB_APP","target":"/anvil-demo","payload":"NameSpace=USER|DispatchClass=Anvil.REST|Enabled=1"}' \
+  http://localhost:52773/anvil/admin/proposals
 ```
 
-Execute the returned proposal id:
+The cockpit then authenticates at `/api/admin/login`, executes the declared change using the official `PUT /api/admin/v2/web-app`, and confirms it using `GET /api/admin/v2/web-app`. Seal the returned proposal id after that readback:
 
 ```bash
-curl -X POST http://localhost:52773/anvil/api/proposals/ID/execute
+curl -u 'operator:password' -X POST http://localhost:52773/anvil/admin/proposals/ID/execute
 ```
 
 Verify it:
 
 ```bash
-curl http://localhost:52773/anvil/api/proposals/ID/verify
+curl -u 'operator:password' http://localhost:52773/anvil/admin/proposals/ID/verify
 ```
 
 A successful verification returns `"verified":1` plus the proposal digest and sealed execution receipt.
@@ -116,10 +112,10 @@ Each mirrored execution contains the IRIS state, action, target, proposal digest
 The implemented path is intentionally narrow but real:
 
 1. Load a deterministic six-phase management plan.
-2. Propose a bounded administrative change.
+2. Authenticate to the official IRIS SysAdmin API and propose a bounded administrative change.
 3. Canonicalize and SHA-256 hash the intent in IRIS.
-4. Execute only an allowlisted operation.
-5. Re-derive and verify the proposal digest.
+4. Execute the allowlisted operation through `PUT /api/admin/v2/web-app`.
+5. Read back through `GET /api/admin/v2/web-app`, then independently re-derive and verify state and proposal digest in ObjectScript.
 6. Seal an execution receipt.
 7. Mirror verified evidence into Sling/Oak.
 8. Render the live state in the ECharts Change Reactor cockpit.
