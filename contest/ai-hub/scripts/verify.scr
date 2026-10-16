@@ -1,0 +1,8 @@
+zn "USER"
+write "Receipts in local demo:",!
+set id=""
+for  set id=$Order(^Anvil.Interop.Receipts(id)) quit:id=""  write id," route=",$ListGet(^Anvil.Interop.Receipts(id),4)," digest=",$ListGet(^Anvil.Interop.Receipts(id),5),!
+write "Local outbox entries:",!
+set id=""
+for  set id=$Order(^Anvil.Interop.Outbox(id)) quit:id=""  write id,!
+halt

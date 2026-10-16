@@ -1,0 +1,18 @@
+# Load the InterSystems AI Hub 154 EAP image locally before starting.
+# Never redistribute this image or publish a derivative to a public registry.
+services:
+  iris:
+    image: iris-ai-hub-community:2026.3.0AI.154.0
+    pull_policy: never
+    container_name: iris-anvil-aihub
+    command: --check-caps false
+    ports:
+      - "127.0.0.1:52783:52773"
+      - "127.0.0.1:1973:1972"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - ./src:/opt/iris-anvil/src:ro
+      - ./inbox:/opt/iris-anvil/inbox:rw
+      - ./archive:/opt/iris-anvil/archive:rw
+    restart: "no"

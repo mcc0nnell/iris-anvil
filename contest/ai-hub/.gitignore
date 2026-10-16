@@ -1,0 +1,8 @@
+.env
+inbox/*
+!inbox/.gitkeep
+archive/*
+!archive/.gitkeep
+*.tar
+*.tar.gz
+*.log
