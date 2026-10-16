@@ -1,0 +1,25 @@
+name: AI Hub contest contract (offline only)
+
+on:
+  pull_request:
+    paths:
+      - "contest/ai-hub/**"
+      - ".github/workflows/contest-aihub-contract.yml"
+  push:
+    branches: [main]
+    paths:
+      - "contest/ai-hub/**"
+      - ".github/workflows/contest-aihub-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source and production shape
+        run: python3 contest/ai-hub/scripts/check_contract.py
+      - name: Disclosure
+        run: echo "STATIC ONLY - AI Hub build 154 not loaded, ObjectScript not compiled, agent not called."

@@ -1,0 +1,13 @@
+zn "USER"
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Alert.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Dispatch.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Result.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Policy.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Agent.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Deliver.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Router.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Inbox.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Production.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
+set sc=##class(Ens.Director).StartProduction("Anvil.Interop.Production")
+if '$SYSTEM.Status.IsOK(sc) {write "START FAILED: ",$SYSTEM.Status.GetErrorText(sc),!} else {write "ANVIL INTEROP PRODUCTION STARTED",!}
+halt
