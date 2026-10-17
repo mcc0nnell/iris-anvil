@@ -82,3 +82,16 @@ It did **not** automatically retry the first failed message. See the
 [worker-crash evidence and read-only recovery audit](CRASH-RECOVERY.md).
 No power-loss, unattended worker recovery, or external notification guarantee
 is claimed.
+
+
+### Explicit one-shot replay of interrupted demo events
+
+A separate, optional [supervised recovery operator](tools/recovery/OPERATOR-REPLAY.md)
+now supports a **human-approved, fail-closed replay** after a worker crash.
+It checks the saved input digest, independent policy, original local Queue
+and Outbox, then claims a single replay before atomically staging the
+original synthetic JSON through the File Inbound Adapter. It never
+asks the AI model for another proposal. This is **not unattended recovery**:
+operators must confirm the production was restarted and supply the
+original input fingerprint. Failures leave a visible recovery claim for
+manual reconciliation; no automatic claim reset is provided.
