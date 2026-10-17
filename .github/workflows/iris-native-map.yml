@@ -1,0 +1,29 @@
+name: IRIS native observation tooling
+on:
+  pull_request:
+    paths:
+      - 'scripts/map_native_calls.py'
+      - 'scripts/verify_native_execution.py'
+      - 'scripts/iris_native_trace.gdb'
+      - 'tests/test_native_*.py'
+      - '.github/workflows/iris-native-map.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/map_native_calls.py'
+      - 'scripts/verify_native_execution.py'
+      - 'scripts/iris_native_trace.gdb'
+      - 'tests/test_native_*.py'
+      - '.github/workflows/iris-native-map.yml'
+jobs:
+  hermetic-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate synthetic native observation fixtures
+        run: python3 -m unittest discover -s tests -p 'test_native_*.py' -v
