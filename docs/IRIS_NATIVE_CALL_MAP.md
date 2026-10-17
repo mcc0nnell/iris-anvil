@@ -115,3 +115,38 @@ independent attestation, do not prove a crash-consistent commit,
 WIJ/fsync behavior, performance, absence of vulnerabilities, or a
 complete WindAnvil native assurance record. Proprietary ELF binaries,
 memory content, and raw debugger transcripts are excluded from GitHub.
+
+## Journal-sync branch follow-up (October 17, 2026)
+
+A separate clean, disposable, network-disabled IRIS AI Hub Community
+instance ran a second synthetic ObjectScript global transaction. We
+recorded one Ctcommit and three journaltran breakpoint hits in the
+identified worker (PID 780). The session reported a successful commit
+readback and test-global removal; GDB observed the same worker exiting
+normally.
+
+The original irisdb executable's **static** control-transfer map has
+journaltran -> jrnforceblk and journaltran -> jrnsyncblk_options.
+The **worker-level dynamic** follow-up recorded zero breakpoint hits
+for jrnforceblk, jrnsyncblk_options, jrncmtsync, and jrnflushbuf.
+This is a limited observation about one workload and one instrumented
+worker: it does **not** imply the helpers never run, that a journal
+write was skipped, or that a commit lacked durability. Other
+worker/daemon contexts, options, and paths were not traced.
+
+The lab record, preserved outside GitHub, has status
+OBSERVATION_NOT_DURABILITY_PROOF and authority NONE.
+Its two private transcript SHA-256 digests are:
+
+- Terminal: 1f0fbb1f05c8204b44403aeb804209be9e2da0d27117a64258df2e54e1fb1a0e
+- Debugger: 5ddad0e3c8ab31d807d79f3c89dbc164347783bad174928f41733104f5df49e5
+
+The next *bounded* hypothesis is that journal persistence may be
+coordinated with a daemon process or an option-dependent path.
+Verifying it requires tracing the responsible process in a disposable
+instance and correlating supported journal counters with physical I/O;
+missing function hits alone must not be treated as negative proof.
+
+The disposable IRIS instance and temporary debugger installation
+were deleted after the successful local capture, preserving research
+evidence and the original unmodified image.
