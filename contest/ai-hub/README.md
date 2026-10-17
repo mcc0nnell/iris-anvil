@@ -95,3 +95,19 @@ asks the AI model for another proposal. This is **not unattended recovery**:
 operators must confirm the production was restarted and supply the
 original input fingerprint. Failures leave a visible recovery claim for
 manual reconciliation; no automatic claim reset is provided.
+
+
+### Bounded, opt-in failed-message watch (experimental)
+
+An optional [bounded recovery watch](tools/recovery/BOUNDED-WATCH.md) can
+observe one preselected synthetic event and, **only if explicitly armed**,
+stage one replay via the existing guarded operator. Its eligibility checks
+require a running IRIS production, a stale saved queue, a matching status-5
+failed inbound IRIS message, a policy-consistent persisted proposal, and
+matching outbox/input digests. No model re-inference or autonomous IRIS restart
+occurs. The real SIGKILL test uncovered a retained event lock after a
+production-only restart and missing auto-start after a full container restart.
+Both remain operational limitations; the watch does not force-unlock or retry
+a failed claim. The last-added claim-side production gate still needs a
+separate native compile/run check; this feature is **experimental**, not
+deployed or an end-to-end availability guarantee.

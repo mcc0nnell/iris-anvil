@@ -65,6 +65,13 @@ ClassMethod Claim(id As %String, expectedDigest As %String) As %DynamicObject
  If (id="")!($Length(id)>64) {Set r.reason="Invalid event ID" Quit r}
  Lock +^Anvil.Interop.EventLock(id):1
  If '$Test {Set r.reason="Event lock busy" Quit r}
+ Set productionName=""
+ Set running=##class(Ens.Director).IsProductionRunning(.productionName)
+ If ('running)!(productionName'="Anvil.Interop.Production") {
+  Lock -^Anvil.Interop.EventLock(id)
+  Set r.reason="Expected IRIS production is not running"
+  Quit r
+ }
  Set r=..Inspect(id)
  If r.status="READY" {
   If r.%Get("input_digest")=expectedDigest {
