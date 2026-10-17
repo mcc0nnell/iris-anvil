@@ -34,4 +34,7 @@ assert "Set ^Anvil.Interop.Pending(" in classes["Router"]
 assert "Kill ^Anvil.Interop.Pending(" in classes["Router"]
 assert "Outbox without pending decision requires reconciliation" in classes["Router"]
 assert "Pending event ID reused with different payload" in classes["Router"]
-print("PASS: 14 baseline structural checks plus 4 pending-journal invariants; not a native runtime test")
+assert 'AI_HUB_OPENAI_BASE_URL' in classes["Agent"]
+assert 'providerSettings.%Set("base_url",baseURL)' in classes["Agent"]
+assert 'AI_HUB_OPENAI_BASE_URL:' in (ROOT / "compose.yml").read_text()
+print("PASS: 14 baseline checks plus 4 pending-journal and 3 endpoint checks; not a native runtime test")

@@ -37,7 +37,7 @@ export OPENAI_API_KEY=...   # Your own API key. Never commit it.
 
 The setup script loads/retags the exact local image and starts `docker compose up -d`; the Compose file deliberately has `pull_policy: never`, localhost-bound ports, and no public image publishing. If your host lacks `setfacl`, ensure `inbox/` and `archive/` grant read/write access to the IRIS container user (UID 51773). Verify image load and port availability before starting.
 
-The workflow uses **OpenAI** via AI Hub's `%AI.Provider`, and reads `OPENAI_API_KEY` from the container environment. Model: `gpt-4o-mini`. No external provider key is embedded in the repository. AI Hub calls will incur API charges; the entry does not bundle free credits.
+The workflow uses **OpenAI** via AI Hub's `%AI.Provider`, and reads `OPENAI_API_KEY` from the container environment. Model: `gpt-4o-mini`. No external provider key is embedded in the repository. AI Hub calls will incur API charges; the entry does not bundle free credits. An optional `AI_HUB_OPENAI_BASE_URL` (default unset) can route through a separately configured OpenAI-compatible endpoint. It must end with `/` (build 154 joins relative API paths) and use HTTPS, or `http://127.0.0.1:` loopback inside the IRIS container. Only use a disposable dummy `OPENAI_API_KEY` with locally emulated endpoints; never send a real provider key to an untrusted URL. Local compatibility tests **do not** establish real model inference.
 
 ## Verify and exercise
 
