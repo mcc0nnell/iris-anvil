@@ -50,3 +50,68 @@ Synthetic no-vendor-binary test:
 
 Detailed analysis and experimental evidence stay in the private lab; the public
 repository contains only the repeatable method and bounded conclusions.
+
+## Executed runtime follow-up (October 17, 2026)
+
+**Native executable matters:** The initial static map above was derived from
+libirisdb.so. The running IRIS server actually used the separate irisdb
+executable, with distinct symbol addresses. Both were obtained from the
+same pinned IRIS AI Hub Community build and are retained only in the lab.
+The executed server ELF SHA-256 is:
+0b99751cdf6528acea33aa366987013ac4b7d557f04e26e33968a1d54410e854.
+
+A disposable IRIS instance (Docker network none, no published ports) ran
+a phase-marked synthetic ObjectScript transaction in USER, read the value
+back, and removed its test global. The GDB session attached only to that
+unique owned worker process and recorded native hit markers and short stacks.
+
+**Observed executable paths:**
+
+- Write: DISPATCH -> Cgset -> gsetjrn -> journalset
+- Write-time journal activity: journalset -> journaltran
+- Commit: DISPATCH -> Ctcommit -> journaltran
+
+The last edge explains the difference from the static libirisdb.so
+IrisTCommit -> tcommit path. The ObjectScript session executed Ctcommit,
+not tcommit, at its breakpoint. The jrncmtsync breakpoint was not
+hit by the bounded run. No absence of synchronization or durability is
+inferred from missing hits.
+
+The verified local record, retained outside GitHub, reports:
+- worker PID 1490; normal debugger-observed exit
+- PHASE_VERIFIED (transaction level 0, value phase)
+- PHASE_CLEAN (test global absent)
+- four required native stack relationships verified
+- status OBSERVED_EXECUTION_NOT_DURABILITY_PROOF
+- authority NONE
+
+**Reproduction:** scripts/iris_native_trace.gdb contains the
+read-only breakpoint commands used in the lab. Use only on your own
+disposable, explicitly authorized IRIS worker: debugger attachment
+pauses the process, may require additional process-tracing privileges,
+and should not target production. Record the phase markers and full
+GDB session privately; the verifier requires normal exit, matching
+worker ID, ordered phase markers, clean data removal, and the exact
+required call-stack relationships.
+
+    python3 scripts/verify_native_execution.py \
+      --session /private/phase-session.log \
+      --debugger /private/phase-gdb.log \
+      --runtime-binary /private/irisdb \
+      --output /private/native-execution.json
+
+Unit tests use synthetic logs only:
+
+    python3 -m unittest discover -s tests -p 'test_native_*.py' -v
+
+An LD_AUDIT attempt did not capture the worker. A separate GDB attempt
+missed a process that had already exited. Neither is counted as a
+successful execution trace; the final run attached to a freshly
+started worker and completed normally.
+
+**Limits:** These findings establish executed native functions and
+stack relationships for one synthetic workload. They are not
+independent attestation, do not prove a crash-consistent commit,
+WIJ/fsync behavior, performance, absence of vulnerabilities, or a
+complete WindAnvil native assurance record. Proprietary ELF binaries,
+memory content, and raw debugger transcripts are excluded from GitHub.
