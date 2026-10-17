@@ -11,6 +11,7 @@ Method OnProcessInput(pInput As %FileCharacterStream, Output pOutput As %Registe
   If $Length(raw)>2048 Quit
  }
  If $Length(raw)>2048 Quit $$$ERROR($$$GeneralError,"Alert exceeds demo input limit")
+ Set sc=$$$OK
  Try {
   Set payload=##class(%DynamicObject).%FromJSON(raw)
   Set req=##class(Anvil.Interop.Alert).%New()
@@ -18,8 +19,9 @@ Method OnProcessInput(pInput As %FileCharacterStream, Output pOutput As %Registe
   Set req.Signal=payload.%Get("signal","")
   Set req.Detail=payload.%Get("detail","")
  } Catch ex {
-  Quit $$$ERROR($$$GeneralError,"Invalid alert JSON")
+  Set sc=$$$ERROR($$$GeneralError,"Invalid alert JSON")
  }
+ If '$SYSTEM.Status.IsOK(sc) Quit sc
  Set sc=..SendRequestSync("Anvil.Router",req,.response,20)
  Set pOutput=response
  Quit sc

@@ -11,6 +11,7 @@ services:
       - "127.0.0.1:1973:1972"
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AI_HUB_OPENAI_BASE_URL: ${AI_HUB_OPENAI_BASE_URL:-}
     volumes:
       - ./src:/opt/iris-anvil/src:ro
       - ./inbox:/opt/iris-anvil/inbox:rw

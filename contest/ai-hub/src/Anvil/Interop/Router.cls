@@ -53,13 +53,36 @@ Method ProcessLocked(pRequest As Anvil.Interop.Alert, signal As %String, Output 
   }
   Quit $$$OK
  }
- Set proposal=##class(Anvil.Interop.Agent).Propose(signal,pRequest.Detail)
- Set pResponse.Proposal=proposal.route
- Set route=##class(Anvil.Interop.Policy).Resolve(signal,proposal.route)
- If route="BLOCKED" {
-  Set pResponse.Reason=proposal.reason
-  Quit $$$OK
+ // Persist the agent proposal *before* forwarding the operation, so a
+ // crash after queue acknowledgement cannot force a fresh model decision.
+ Set pending=$Get(^Anvil.Interop.Pending(pRequest.EventId))
+ If pending'="" {
+  If $ListGet(pending,1)'=inputDigest {
+   Set pResponse.Reason="Pending event ID reused with different payload"
+   Quit $$$OK
+  }
+  Set savedProposal=$ListGet(pending,2),route=$ListGet(pending,3)
+  If ('##class(Anvil.Interop.Policy).AllowedProposal(savedProposal))!(##class(Anvil.Interop.Policy).Resolve(signal,savedProposal)'=route) {
+   Set pResponse.Reason="Invalid pending decision requires reconciliation"
+   Quit $$$OK
+  }
+  Set proposal={"route": (savedProposal), "reason":"Recovered previously persisted agent proposal"}
+ } Else {
+  // An orphaned outbox from an older run has no trustworthy proposal.
+  // Never improvise another agent answer to repair it.
+  If $Get(^Anvil.Interop.Outbox(pRequest.EventId))'="" {
+   Set pResponse.Reason="Outbox without pending decision requires reconciliation"
+   Quit $$$OK
+  }
+  Set proposal=##class(Anvil.Interop.Agent).Propose(signal,pRequest.Detail)
+  Set route=##class(Anvil.Interop.Policy).Resolve(signal,proposal.route)
+  If route="BLOCKED" {
+   Set pResponse.Proposal=proposal.route,pResponse.Reason=proposal.reason
+   Quit $$$OK
+  }
+  Set ^Anvil.Interop.Pending(pRequest.EventId)=$ListBuild(inputDigest,proposal.route,route)
  }
+ Set pResponse.Proposal=proposal.route
  Set outgoing=##class(Anvil.Interop.Dispatch).%New()
  Set outgoing.EventId=pRequest.EventId,outgoing.Signal=signal,outgoing.Route=route,outgoing.Detail=pRequest.Detail
  Set sc=..SendRequestSync("Anvil."_route,outgoing,.delivery,15)
@@ -78,6 +101,7 @@ Method ProcessLocked(pRequest As Anvil.Interop.Alert, signal As %String, Output 
  Set canonical="iris-anvil/interop/v1|"_inputDigest_"|"_proposal.route_"|"_route
  Set receipt=##class(Anvil.Interop.Policy).Digest(canonical)
  Set ^Anvil.Interop.Receipts(pRequest.EventId)=$ListBuild(inputDigest,signal,proposal.route,route,receipt,$Horolog)
+ Kill ^Anvil.Interop.Pending(pRequest.EventId)
  Set pResponse.State="QUEUED",pResponse.Route=route,pResponse.Receipt=receipt,pResponse.Reason="AI decision independently governed and demo queue acknowledged"
  Quit $$$OK
 }
