@@ -1,6 +1,6 @@
 # IRIS Anvil — Agentic Accessibility Interoperability (contest candidate)
 
-**Status:** Native build-154 compiler and fail-closed demonstration validated in an isolated lab (October 17, 2026 UTC). All nine ObjectScript classes compiled after the `Inbox` error-handler repair, all eight deterministic policy cases passed, and `Anvil.Interop.Production` started. **No live AI provider decision or successful queued delivery has been proven.** This interoperability workflow remains separate from the original IRIS Anvil management reactor.
+**Status:** Native build-154 compiler and fail-closed demonstration validated in an isolated lab (October 17, 2026 UTC). All nine ObjectScript classes compiled after the `Inbox` error-handler repair, all eight deterministic policy cases passed, and `Anvil.Interop.Production` started. **A successful local queued delivery and receipt were demonstrated with clearly marked, externally authored ChatGPT fixtures; a live AI Hub provider decision is still unverified.** This interoperability workflow remains separate from the original IRIS Anvil management reactor.
 
 A synthetic household accessibility event enters a real IRIS interoperability **file inbound Business Service**, passes through an **Ens.BusinessProcess**, which calls an **AI Hub %AI.Agent** for a routing proposal, and is independently constrained by a deterministic policy before a **Business Operation** durably queues a *demonstration* delivery. Every successful queued decision receives a SHA-256-based evidence receipt; missing credentials, invalid model outputs, unknown signals and delivery conflicts fail closed.
 
@@ -46,7 +46,7 @@ For build-154 compiler diagnostics **before starting the production**, use the
 compile-only script, local deterministic policy cases, fail-closed log validation,
 and clear limits on what the resulting evidence proves. Compile, policy-only, and
 no-key/invalid-signal production tests were subsequently executed in an isolated
-build-154 runtime; the external model call and successful delivery remain unverified.
+build-154 runtime. A separately isolated fixture run also exercised successful local queue/receipt behavior, but a genuine AI Hub provider model call remains unverified.
 
 ```bash
 python3 scripts/check_contract.py  # structural checks only; no runtime proof
@@ -56,7 +56,7 @@ docker exec -i iris-anvil-aihub iris session iris -U USER < scripts/verify.scr
 
 Use [the local IRIS Management Portal](http://127.0.0.1:52783/csp/sys/UtilHome.csp) to inspect `Anvil.Interop.Production` message traces. Also inspect `^Anvil.Interop.Queue` in namespace USER. Try an invalid signal and an absent API key and verify they do **not** produce a queued outcome. Confirm that SMOKE routes to BOTH even if the agent proposes otherwise. The `demo.sh` script writes an event into `inbox/` atomically for the adapter.
 
-**Evidence status:** The isolated local IRIS runtime compiled 9/9 classes, passed 8/8 deterministic policy tests, and started the interoperability production. Synthetic `DOORBELL` without credentials and `UNKNOWN` signal were archived with IRIS response messages reporting `BLOCKED` and the expected reasons. Both resulted in no outbox, queue or receipts. A repeated no-key event was also blocked. Source-level and build-154 test logs remain in the private Butcher lab. This is **not** a full provider-call, delivery-recovery, production deployment, or external attestation proof. A malformed JSON file remained in the inbox after rejection; handling/quarantine behavior needs a separate operational review.
+**Evidence status:** The isolated local IRIS runtime compiled 9/9 classes, passed 8/8 deterministic policy tests, and started the interoperability production. Synthetic `DOORBELL` without credentials and `UNKNOWN` signal were archived with IRIS response messages reporting `BLOCKED` and the expected reasons. Both resulted in no outbox, queue or receipts. A repeated no-key event was also blocked. Source-level and build-154 test logs remain in the private Butcher lab. A later network-isolated lab test with a **ChatGPT-authored, test-only agent fixture kept outside this repository** produced four queued outcomes and four receipts, including policy-enforced upgrades of SMOKE/BABY_CRY to BOTH. A pending-decision journal was then exercised with interrupted-state simulations: same decision and receipt restored without a new proposal, while orphaned outbox and mismatched-input cases failed closed. This is **not** a live provider-call, real process-crash, production deployment, or external attestation proof. A malformed JSON file remained in the inbox after rejection; handling/quarantine behavior needs a separate operational review.
 
 ## Contest and provenance
 
@@ -68,5 +68,5 @@ References: [AI Hub EAP](https://github.com/intersystems-community/ai-hub-eap), 
 
 - Synthetic events; in-IRIS local queue only; no actual SMS, vibration, lighting, or emergency dispatch.
 - Receipt is a digest of canonical input/decision metadata, not an external attestation or an immutable signed receipt. The local demo ledger is not tamper-evident.
-- Build-154 local compilation and negative-path execution are proven; the contest still needs an authorized live agent decision, successful local delivery/receipt, replay recovery tests, and submission artifacts.
+- Build-154 compilation, native policy checks, fail-closed live production tests, and fixture-based successful queue/receipt paths are proven. The contest still needs a genuine live AI Hub agent decision, real failure/restart recovery tests, and submission artifacts.
 - AI Hub APIs are EAP/pre-release and may differ from the latest public SDK documentation; verify compilation on build 154.

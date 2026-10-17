@@ -29,4 +29,9 @@ definition=ET.fromstring(m.group(0))
 items={e.attrib["Name"] for e in definition.findall("Item")}
 assert items == {"Anvil.Inbox","Anvil.Router","Anvil.VISUAL","Anvil.HAPTIC","Anvil.BOTH","Anvil.REVIEW"}
 assert not any("api_key\": \"sk-" in text for text in classes.values())
-print("PASS: 14 offline structural/contract checks; LIVE AI HUB 154 NOT TESTED")
+# Structural presence only: crash/replay semantics require actual IRIS execution.
+assert "Set ^Anvil.Interop.Pending(" in classes["Router"]
+assert "Kill ^Anvil.Interop.Pending(" in classes["Router"]
+assert "Outbox without pending decision requires reconciliation" in classes["Router"]
+assert "Pending event ID reused with different payload" in classes["Router"]
+print("PASS: 14 baseline structural checks plus 4 pending-journal invariants; not a native runtime test")
