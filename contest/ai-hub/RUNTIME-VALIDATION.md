@@ -63,3 +63,41 @@ An additional isolated production run, using the **actual repository's `Anvil.In
 Negative tests against the real Agent returned `UNAVAILABLE` when: an external cleartext HTTP base URL was configured, the required trailing slash was missing, the key was unset, or an actual HTTP response contained a disallowed token (`NOT_A_VALID_ROUTE`). The last case was tested against a second local protocol stub and its HTTP request was independently recorded.
 
 Private runtime transcript and protocol-observation files: `/home/commander/lab/iris-aihub-chat-transport-20261016/evidence/` on Butcher. The local test server and synthetic keys are deliberately excluded from this public repository. **Still unverified:** a genuine LLM-generated response through a configured provider, a real process kill/power loss recovery, and independently signed assurance.
+
+## October 17: authenticated Grok → native AI Hub Chat → IRIS receipt
+
+The actual Grok Build CLI 1.0.50 on Butcher successfully authenticated through
+the operator's official xAI device login. A tool-disabled, no-web, one-turn
+`grok --single ... --output-format json` invocation returned a genuine model
+response; its `modelUsage` identified `grok-4.7-build` for that direct
+test. The live Grok bridge then executed another successful CLI invocation
+for a synthetic `DOORBELL` alert. The bridge accepted the canonical
+model-generated token `BOTH` and logged the SHA-256 of CLI JSON stdout.
+
+Using **the actual repository's AI Hub Agent and Router classes**, the
+isolated IRIS **2026.3.0AI.154.0** container ran with `--network none`
+and no published ports. `AI_HUB_OPENAI_BASE_URL` pointed to a container
+loopback proxy connected to the host's private Unix socket. The dummy
+`OPENAI_API_KEY` value was a local compatibility placeholder; **Grok
+authentication remained on the host**. The actual `%AI.Agent.Chat()`
+received the OpenAI-compatible bridge response, the independent
+`Anvil.Interop.Policy` governed it and `Anvil.Interop.Deliver` queued it.
+
+**Verified outcomes:**
+- 9/9 native ObjectScript classes compiled; 8/8 deterministic policy assertions passed
+- `Anvil.Interop.Production` started, File Inbound Adapter consumed the synthetic event
+- `DOORBELL` proposed `BOTH`, governed to `BOTH`, persisted as `QUEUED`
+- `^Anvil.Interop.Receipts`, `^Anvil.Interop.Queue`, `^Anvil.Interop.Outbox` and `Anvil.Interop.Result` all contained the event
+- Receipt digest: `J/mqzaMgi76G2L7RI5N8gH3uWtZ+9uqVXM9QDgqaSks=`
+- Identical-payload replay returned the **same digest** with `Idempotent replay; no second agent call or delivery`
+- The private bridge's successful Grok invocation count remained **1** before and after replay
+
+Private proof directory: `/home/commander/lab/iris-grok-live-20261017/`,
+including compiler, policy, production startup, bridge log, initial and
+replay result records, source/identity manifest and checksums.
+
+This **closes the genuine-model integration demonstration gap**, but does not
+establish external notification delivery, general model safety, IRIS process
+kill/power-loss atomicity, or an externally signed WindAnvil Assurance Record.
+The Grok bridge is optional, not the default OpenAI provider implementation.
+See [the repeatable bridge runbook](tools/grok/README.md).

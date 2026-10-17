@@ -1,6 +1,6 @@
 # IRIS Anvil — Agentic Accessibility Interoperability (contest candidate)
 
-**Status:** Native build-154 compiler and fail-closed demonstration validated in an isolated lab (October 17, 2026 UTC). All nine ObjectScript classes compiled after the `Inbox` error-handler repair, all eight deterministic policy cases passed, and `Anvil.Interop.Production` started. **A successful local queued delivery and receipt were demonstrated with clearly marked, externally authored ChatGPT fixtures; a live AI Hub provider decision is still unverified.** This interoperability workflow remains separate from the original IRIS Anvil management reactor.
+**Status:** Native build-154 compiler and fail-closed demonstration validated in an isolated lab (October 17, 2026 UTC). All nine ObjectScript classes compiled after the `Inbox` error-handler repair, all eight deterministic policy cases passed, and `Anvil.Interop.Production` started. **A genuine Grok Build CLI decision has now traversed the native AI Hub Chat interface, deterministic IRIS policy, local outbox/queue and persisted receipt. The earlier canned fixture demonstration remains separately documented.** This interoperability workflow remains separate from the original IRIS Anvil management reactor.
 
 A synthetic household accessibility event enters a real IRIS interoperability **file inbound Business Service**, passes through an **Ens.BusinessProcess**, which calls an **AI Hub %AI.Agent** for a routing proposal, and is independently constrained by a deterministic policy before a **Business Operation** durably queues a *demonstration* delivery. Every successful queued decision receives a SHA-256-based evidence receipt; missing credentials, invalid model outputs, unknown signals and delivery conflicts fail closed.
 
@@ -37,7 +37,7 @@ export OPENAI_API_KEY=...   # Your own API key. Never commit it.
 
 The setup script loads/retags the exact local image and starts `docker compose up -d`; the Compose file deliberately has `pull_policy: never`, localhost-bound ports, and no public image publishing. If your host lacks `setfacl`, ensure `inbox/` and `archive/` grant read/write access to the IRIS container user (UID 51773). Verify image load and port availability before starting.
 
-The workflow uses **OpenAI** via AI Hub's `%AI.Provider`, and reads `OPENAI_API_KEY` from the container environment. Model: `gpt-4o-mini`. No external provider key is embedded in the repository. AI Hub calls will incur API charges; the entry does not bundle free credits. An optional `AI_HUB_OPENAI_BASE_URL` (default unset) can route through a separately configured OpenAI-compatible endpoint. It must end with `/` (build 154 joins relative API paths) and use HTTPS, or `http://127.0.0.1:` loopback inside the IRIS container. Only use a disposable dummy `OPENAI_API_KEY` with locally emulated endpoints; never send a real provider key to an untrusted URL. Local compatibility tests **do not** establish real model inference.
+The workflow uses **OpenAI** via AI Hub's `%AI.Provider`, and reads `OPENAI_API_KEY` from the container environment. Model: `gpt-4o-mini`. No external provider key is embedded in the repository. AI Hub calls will incur API charges; the entry does not bundle free credits. An optional `AI_HUB_OPENAI_BASE_URL` (default unset) can route through a separately configured OpenAI-compatible endpoint. It must end with `/` (build 154 joins relative API paths) and use HTTPS, or `http://127.0.0.1:` loopback inside the IRIS container. Only use a disposable dummy `OPENAI_API_KEY` with locally emulated endpoints; never send a real provider key to an untrusted URL. Deterministic local compatibility tests **by themselves** do not establish real model inference. A separate authenticated Grok Build CLI inference and native AI Hub interoperability run were executed on October 17, using a host-local private Unix-socket bridge.
 
 ## Verify and exercise
 
@@ -46,7 +46,7 @@ For build-154 compiler diagnostics **before starting the production**, use the
 compile-only script, local deterministic policy cases, fail-closed log validation,
 and clear limits on what the resulting evidence proves. Compile, policy-only, and
 no-key/invalid-signal production tests were subsequently executed in an isolated
-build-154 runtime. A separately isolated fixture run also exercised successful local queue/receipt behavior, but a genuine AI Hub provider model call remains unverified.
+build-154 runtime. A later isolated Grok CLI inference run also proved native AI Hub Chat → governed local queue/outbox/receipt and idempotent replay. The default OpenAI provider was **not** called; see [Grok bridge runbook](tools/grok/README.md).
 
 ```bash
 python3 scripts/check_contract.py  # structural checks only; no runtime proof
