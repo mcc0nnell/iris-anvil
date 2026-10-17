@@ -101,3 +101,27 @@ establish external notification delivery, general model safety, IRIS process
 kill/power-loss atomicity, or an externally signed WindAnvil Assurance Record.
 The Grok bridge is optional, not the default OpenAI provider implementation.
 See [the repeatable bridge runbook](tools/grok/README.md).
+
+## October 17: real worker SIGKILL, recovery limits and audit
+
+The previously untested worker-crash boundary has now received a **native IRIS
+process-level** test, separate from the earlier global-deletion simulation and
+separate from the genuine Grok inference proof. A lab-only Router stopped just
+after the VISUAL operation acknowledged a synthetic event; the operator
+confirmed the paused PID was an IRIS Ensemble worker and sent **SIGKILL**.
+The original pending decision, outbox and queue remained, but there was no
+receipt. The first duplicate file after the kill did not complete recovery.
+After an explicit interoperability production restart **and fresh duplicate
+input**, the normal Router reconstructed the receipt using the saved
+decision and cleared Pending. No second queue entry was created.
+
+A read-only `RecoveryAudit` operator tool compiled and ran natively. It
+correctly reported the completed event and detected two deliberately seeded
+negative cases (`PENDING_WITH_OUTBOX` and `ORPHAN_OUTBOX`); cleanup
+restored a clean audit result. It does not dispatch, retry or mutate data.
+Details, exact receipt, log provenance, status-5 message headers and limits:
+[CRASH-RECOVERY.md](CRASH-RECOVERY.md).
+
+**Do not infer automatic supervision/replay, power-loss durability or
+external notification from this SIGKILL result.** Disk headroom on Butcher
+remains below the recommended level for additional large test containers.

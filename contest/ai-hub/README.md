@@ -70,3 +70,15 @@ References: [AI Hub EAP](https://github.com/intersystems-community/ai-hub-eap), 
 - Receipt is a digest of canonical input/decision metadata, not an external attestation or an immutable signed receipt. The local demo ledger is not tamper-evident.
 - Build-154 compilation, native policy checks, fail-closed live production tests, and fixture-based successful queue/receipt paths are proven. The contest still needs a genuine live AI Hub agent decision, real failure/restart recovery tests, and submission artifacts.
 - AI Hub APIs are EAP/pre-release and may differ from the latest public SDK documentation; verify compilation on build 154.
+
+
+### Process-crash recovery evidence
+
+A separate, **real SIGKILL** of an isolated IRIS worker after delivery acknowledgment
+and before receipt persistence retained the pending decision and local outbox.
+The unmodified router subsequently reconstructed the receipt using the original
+decision after an operator-controlled production restart **and a fresh replay**.
+It did **not** automatically retry the first failed message. See the
+[worker-crash evidence and read-only recovery audit](CRASH-RECOVERY.md).
+No power-loss, unattended worker recovery, or external notification guarantee
+is claimed.

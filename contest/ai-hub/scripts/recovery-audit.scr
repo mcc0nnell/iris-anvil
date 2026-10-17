@@ -1,0 +1,6 @@
+// Loads read-only recovery diagnostic only; does not restart, replay or delete.
+zn "USER"
+set sc=$SYSTEM.OBJ.Load("/tmp/AnvilRecoveryAudit.cls","ck")
+if '$SYSTEM.Status.IsOK(sc) {write "ANVIL_RECOVERY_AUDIT_COMPILE_FAIL|",$SYSTEM.Status.GetErrorText(sc),! halt}
+do ##class(Anvil.Interop.RecoveryAudit).Run()
+halt
