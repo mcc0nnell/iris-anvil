@@ -1,0 +1,7 @@
+zn "USER"
+write "ANVIL_POLICY_BEGIN",!
+set passes=0,failures=0
+set cases=$listbuild($listbuild("SMOKE","VISUAL","BOTH"),$listbuild("BABY_CRY","HAPTIC","BOTH"),$listbuild("DOORBELL","VISUAL","VISUAL"),$listbuild("LAUNDRY","HAPTIC","HAPTIC"),$listbuild("UNKNOWN","BOTH","BLOCKED"),$listbuild("DOORBELL","UNAVAILABLE","BLOCKED"),$listbuild("DOORBELL","REVIEW","REVIEW"),$listbuild("DOORBELL","INVALID","BLOCKED"))
+for i=1:1:$listlength(cases) { set item=$listget(cases,i) set signal=$listget(item,1),proposal=$listget(item,2),expected=$listget(item,3) set actual=##class(Anvil.Interop.Policy).Resolve(signal,proposal) if actual=expected { set passes=passes+1 write "ANVIL_POLICY_PASS|",signal,"|",proposal,"|",actual,! } else { set failures=failures+1 write "ANVIL_POLICY_FAIL|",signal,"|",proposal,"|",actual,"|expected=",expected,! } }
+write "ANVIL_POLICY_SUMMARY|pass=",passes,"|fail=",failures,!
+halt

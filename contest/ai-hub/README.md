@@ -41,6 +41,12 @@ The workflow uses **OpenAI** via AI Hub's `%AI.Provider`, and reads `OPENAI_API_
 
 ## Verify and exercise
 
+For build-154 compiler diagnostics **before starting the production**, use the
+[controlled runtime validation runbook](RUNTIME-VALIDATION.md). It includes a
+compile-only script, local deterministic policy cases, fail-closed log validation,
+and clear limits on what the resulting evidence proves. The live compile and agent
+runs remain unverified until executed in an approved IRIS session.
+
 ```bash
 python3 scripts/check_contract.py  # structural checks only; no runtime proof
 ./scripts/demo.sh               # submit synthetic doorbell event

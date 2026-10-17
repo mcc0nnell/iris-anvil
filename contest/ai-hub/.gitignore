@@ -6,3 +6,5 @@ archive/*
 *.tar
 *.tar.gz
 *.log
+__pycache__/
+*.pyc

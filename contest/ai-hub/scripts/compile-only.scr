@@ -1,0 +1,7 @@
+zn "USER"
+write "ANVIL_COMPILE_BEGIN",!
+set passes=0,failures=0
+set names="Alert|Dispatch|Result|Policy|Agent|Deliver|Router|Inbox|Production"
+for i=1:1:$length(names,"|") { set name=$piece(names,"|",i) set path="/opt/iris-anvil/src/Anvil/Interop/"_name_".cls" set sc=$SYSTEM.OBJ.Load(path,"ck") if $SYSTEM.Status.IsOK(sc) { set passes=passes+1 write "ANVIL_COMPILE_PASS|",name,! } else { set failures=failures+1 write "ANVIL_COMPILE_FAIL|",name,"|",$SYSTEM.Status.GetErrorText(sc),! } }
+write "ANVIL_COMPILE_SUMMARY|pass=",passes,"|fail=",failures,!
+halt
