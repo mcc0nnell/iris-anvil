@@ -24,19 +24,27 @@ CASES = (
 def validate(text: str, stage: str) -> None:
     label = "COMPILE" if stage == "compile" else "POLICY"
     prefix = f"ANVIL_{label}_"
-    if text.count(prefix + "BEGIN") != 1:
+    # Match *complete lines*, not embedded substrings that merely resemble
+    # evidence markers (e.g. FAKE_ANVIL_COMPILE_PASS|Agent).
+    lines = text.splitlines()
+    if lines.count(prefix + "BEGIN") != 1:
         raise ValueError("missing or duplicate begin marker")
     expected = [f"{prefix}PASS|{name}" for name in CLASSES] if stage == "compile" else [
         f"{prefix}PASS|{'|'.join(case)}" for case in CASES
     ]
-    matches = re.findall(rf"ANVIL_{label}_(?:PASS|FAIL)\|[^\r\n]*", text)
+    matches = [line for line in lines if line.startswith(prefix + "PASS|")
+               or line.startswith(prefix + "FAIL|")]
     if matches != expected:
         raise ValueError(f"unexpected passes/failures, order, or count: {matches!r}")
     summary = f"{prefix}SUMMARY|pass={len(expected)}|fail=0"
-    if text.count(summary) != 1:
-        raise ValueError("missing or mismatched complete summary")
-    if len(re.findall(rf"ANVIL_{label}_SUMMARY\|", text)) != 1:
-        raise ValueError("duplicate summary marker")
+    summaries = [line for line in lines if line.startswith(prefix + "SUMMARY|")]
+    if summaries != [summary]:
+        raise ValueError("missing, duplicate or mismatched complete summary")
+    # A success-looking summary cannot overrule explicit IRIS error diagnostics
+    # elsewhere in the console output. This is a conservative transcript gate,
+    # not a substitute for an authenticated compiler result.
+    if re.search(r"\bERROR\s*#\s*\d+\b|<ERROR\b|^\s*ERROR:", text, re.I | re.M):
+        raise ValueError("explicit IRIS error diagnostics present")
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)

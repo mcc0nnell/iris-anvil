@@ -29,6 +29,20 @@ class RuntimeLogVerifierTests(unittest.TestCase):
     def test_policy_complete(self):
         mod.validate(self.good("policy"), "policy")
 
+    def test_rejects_prefix_spoofing(self):
+        text = self.good("compile").replace(
+            "ANVIL_COMPILE_PASS|", "FAKE_ANVIL_COMPILE_PASS|"
+        )
+        with self.assertRaises(ValueError):
+            mod.validate(text, "compile")
+
+    def test_rejects_error_after_complete_summary(self):
+        text = self.good("compile") + (
+            "ERROR #5002: ObjectScript compilation failed after summary\n"
+        )
+        with self.assertRaises(ValueError):
+            mod.validate(text, "compile")
+
     def test_rejects_missing_class(self):
         text = self.good("compile").replace("ANVIL_COMPILE_PASS|Agent\n", "")
         with self.assertRaises(ValueError):
