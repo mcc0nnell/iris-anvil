@@ -1,0 +1,18 @@
+// Native negative control: optional claim must refuse while production is stopped.
+// Run only in a fresh, network-isolated disposable IRIS AI Hub 154 container.
+zn "USER"
+write "ANVIL_CLAIM_GATE_BEGIN",!
+set productionName="",running=##class(Ens.Director).IsProductionRunning(.productionName)
+if running {write "ANVIL_CLAIM_GATE_FAIL|production_already_running",! halt}
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Policy.cls","ck")
+if '$SYSTEM.Status.IsOK(sc) {write "ANVIL_CLAIM_GATE_FAIL|policy_compile|",$SYSTEM.Status.GetErrorText(sc),! halt}
+set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/recovery/RecoveryReplay.cls","ck")
+if '$SYSTEM.Status.IsOK(sc) {write "ANVIL_CLAIM_GATE_FAIL|replay_compile|",$SYSTEM.Status.GetErrorText(sc),! halt}
+write "ANVIL_CLAIM_GATE_COMPILE_PASS",!
+set id="anvil-claim-gate-"_$Job
+if $Data(^Anvil.Interop.RecoveryClaim(id)) {write "ANVIL_CLAIM_GATE_FAIL|unexpected_claim_precondition",! halt}
+set result=##class(Anvil.Interop.RecoveryReplay).Claim(id,"deliberately-not-a-digest")
+if (result.status'="BLOCKED")!(result.reason'="Expected IRIS production is not running") {write "ANVIL_CLAIM_GATE_FAIL|unexpected_result|",result.%ToJSON(),! halt}
+if $Data(^Anvil.Interop.RecoveryClaim(id)) {write "ANVIL_CLAIM_GATE_FAIL|claim_written_while_stopped",! halt}
+write "ANVIL_CLAIM_GATE_OFFLINE_PASS",!
+halt
