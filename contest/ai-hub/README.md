@@ -68,7 +68,7 @@ References: [AI Hub EAP](https://github.com/intersystems-community/ai-hub-eap), 
 
 - Synthetic events; in-IRIS local queue only; no actual SMS, vibration, lighting, or emergency dispatch.
 - Receipt is a digest of canonical input/decision metadata, not an external attestation or an immutable signed receipt. The local demo ledger is not tamper-evident.
-- Build-154 compilation, native policy checks, fail-closed live production tests, and fixture-based successful queue/receipt paths are proven. The contest still needs a genuine live AI Hub agent decision, real failure/restart recovery tests, and submission artifacts.
+- Build-154 compilation, native policy checks, fail-closed production tests, genuine Grok-backed AI Hub inference, and a separate real worker SIGKILL demonstration are documented. These are distinct runs, not a single uninterrupted golden-path execution. A polished, reproducible end-to-end capture, publication/submission artifacts, and stronger operational recovery remain outstanding.
 - AI Hub APIs are EAP/pre-release and may differ from the latest public SDK documentation; verify compilation on build 154.
 
 
@@ -108,6 +108,7 @@ matching outbox/input digests. No model re-inference or autonomous IRIS restart
 occurs. The real SIGKILL test uncovered a retained event lock after a
 production-only restart and missing auto-start after a full container restart.
 Both remain operational limitations; the watch does not force-unlock or retry
-a failed claim. The last-added claim-side production gate still needs a
-separate native compile/run check; this feature is **experimental**, not
-deployed or an end-to-end availability guarantee.
+a failed claim. The final claim-side production-health guard was independently compiled and
+negative-tested on build 154 on October 19, 2026: a stopped production blocks
+`Claim()` without writing a claim (see the bounded-watch runbook). This remains
+**experimental**, not deployed or an end-to-end availability guarantee.

@@ -42,7 +42,39 @@ The first watch correctly refused to stage because the queue was younger than 60
 
 Only a **full restart of that disposable IRIS container** cleared the lock (`LOCK_ACQUIRED=1` afterwards), preserving the pending/queue/outbox. The container's production had not auto-started; an initial armed watch version staged the one replay file while production was down. This exposed a **real missing production-health guard**, now added to `RecoveryWatch.Probe` and to the existing `RecoveryReplay.Claim`. The updated read-only native watch was tested with production stopped and returned `BLOCKED / Expected IRIS production is not running`; `Ens.Director.IsProductionRunning` returned false.
 
-After manually starting `Anvil.Interop.Production`, the **already-staged** one-shot replay was consumed. IRIS persisted receipt `J0vX1ZoYkujwTZTsoO8eMjm5npXcV6FiBx2G75WFyjg=`, retained one VISUAL queue/outbox and the durable claim, and cleared Pending. A subsequent watch refused the completed event. **The updated claim production-health check has only been structurally tested, not yet separately compiled in IRIS after that final edit; obtain that native proof before considering this ready for operational use.**
+After manually starting `Anvil.Interop.Production`, the **already-staged** one-shot replay was consumed. IRIS persisted receipt `J0vX1ZoYkujwTZTsoO8eMjm5npXcV6FiBx2G75WFyjg=`, retained one VISUAL queue/outbox and the durable claim, and cleared Pending. A subsequent watch refused the completed event. The final claim-side production-health check was separately compiled and exercised against native build 154 on October 19, 2026, using the isolated negative control below. That test proves stopped-production refusal, not a full positive claim/replay after SIGKILL.
+
+## Reproduce the native claim-side safety gate (October 19, 2026)
+
+This is a separate **stopped-production negative control**, not a replay or SIGKILL
+simulation. Run only with the locally authorized EAP image on a fresh disposable
+container. It requires neither credentials nor network access, makes no
+recovery claim, and does not execute a model. The native test refuses to proceed
+if any IRIS production is running.
+
+From the repository root:
+
+```bash
+docker run -d --rm --name iris-anvil-claim-gate --network none \
+  --mount "type=bind,src=$PWD/contest/ai-hub/src,dst=/opt/iris-anvil/src,readonly" \
+  --mount "type=bind,src=$PWD/contest/ai-hub/tools/recovery,dst=/opt/iris-anvil/recovery,readonly" \
+  iris-ai-hub-community:2026.3.0AI.154.0 --check-caps false
+# Wait for `docker inspect -f '{{.State.Health.Status}}' iris-anvil-claim-gate`
+# to report healthy before invoking the native ObjectScript session.
+docker exec -i iris-anvil-claim-gate iris session iris -U USER \
+  < contest/ai-hub/scripts/recovery-claim-gate.scr | tee /tmp/anvil-claim-gate.log
+grep -qx 'ANVIL_CLAIM_GATE_COMPILE_PASS' /tmp/anvil-claim-gate.log
+grep -qx 'ANVIL_CLAIM_GATE_OFFLINE_PASS' /tmp/anvil-claim-gate.log
+! grep -E 'ANVIL_CLAIM_GATE_FAIL|ERROR #|<SYNTAX>|<UNDEFINED>' /tmp/anvil-claim-gate.log
+docker rm -f iris-anvil-claim-gate
+```
+
+**Observed on AI Hub 154:** both PASS markers were emitted exactly once; native
+`RecoveryReplay` compiled and `Claim()` rejected stopped-production state
+without writing `^Anvil.Interop.RecoveryClaim`. The private transcript and
+SHA256SUMS are on Butcher at `/home/commander/lab/iris-claim-gate-native-20261019/`.
+The October 17 successful replay and worker SIGKILL evidence remain separate;
+this check does not establish an end-to-end post-crash positive replay.
 
 ### Boundaries and follow-up
 
