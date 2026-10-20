@@ -1,0 +1,33 @@
+// Read-only native receipt, policy, queue and incoming IRIS message-header evidence.
+zn "USER"
+set id=$System.Util.GetEnviron("ANVIL_GOLDEN_EVENT_ID")
+set r={"status":"PENDING"}
+if (id="")!($Length(id)>64) {write "ANVIL_GOLDEN_STATE|",r.%ToJSON(),! halt}
+do r.%Set("event_id",id)
+set headers=0,failedHeaders=0
+set st=##class(%SQL.Statement).%New()
+set sc=st.%Prepare("SELECT TOP 250 MessageBodyId, Status FROM Ens.MessageHeader WHERE MessageBodyClassName = 'Anvil.Interop.Alert' ORDER BY ID DESC")
+if '$System.Status.IsOK(sc) {write "ANVIL_GOLDEN_FAIL|header_query_prepare",! halt}
+set rows=st.%Execute()
+if '$IsObject(rows) {write "ANVIL_GOLDEN_FAIL|header_query_execute",! halt}
+while rows.%Next() {set obj=##class(Anvil.Interop.Alert).%OpenId(rows.%Get("MessageBodyId")) if $IsObject(obj) {if obj.EventId=id {set headers=headers+1 if rows.%Get("Status")=5 set failedHeaders=failedHeaders+1}}}
+do r.%Set("inbound_header_count",headers)
+do r.%Set("failed_inbound_headers",failedHeaders)
+set receipt=$Get(^Anvil.Interop.Receipts(id))
+if receipt="" {write "ANVIL_GOLDEN_STATE|",r.%ToJSON(),! halt}
+set digest=$ListGet(receipt,1),signal=$ListGet(receipt,2),proposal=$ListGet(receipt,3),route=$ListGet(receipt,4),proof=$ListGet(receipt,5)
+set queue=$Get(^Anvil.Interop.Queue(route,id)),outbox=$Get(^Anvil.Interop.Outbox(id))
+set count=0
+for other="VISUAL","HAPTIC","BOTH","REVIEW" {if $Data(^Anvil.Interop.Queue(other,id)) set count=count+1}
+set recomputed=##class(Anvil.Interop.Policy).Digest("iris-anvil/interop/v1|"_digest_"|"_proposal_"|"_route)
+set expectedOutbox=##class(Anvil.Interop.Policy).Digest(signal_"|"_route_"|"_$ListGet(queue,2))
+set r.status="COMPLETE",r.signal=signal,r.proposal=proposal,r.route=route,r.receipt=proof
+do r.%Set("input_digest",digest)
+do r.%Set("queue_count",count)
+do r.%Set("pending_cleared",('$Data(^Anvil.Interop.Pending(id))))
+do r.%Set("queue_payload_ok",(queue'="")&($ListGet(queue,1)=signal))
+do r.%Set("outbox_matches",(outbox'="")&(outbox=expectedOutbox))
+do r.%Set("policy_matches",(##class(Anvil.Interop.Policy).Resolve(signal,proposal)=route))
+do r.%Set("receipt_matches",(proof'="")&(recomputed=proof))
+write "ANVIL_GOLDEN_STATE|",r.%ToJSON(),!
+halt

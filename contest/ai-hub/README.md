@@ -22,6 +22,22 @@ flowchart LR
 
 Signals are `SMOKE`, `BABY_CRY`, `DOORBELL`, `LAUNDRY`. The AI agent proposes `VISUAL`, `HAPTIC`, `BOTH` or `REVIEW`. Smoke and baby-cry signals are **forced to BOTH**, regardless of weaker model proposals. The model has no tools capable of bypassing that rule. No credentials, no decision, no delivery. The demo queue is not a notification service.
 
+## For contest judges and reviewers
+
+Start with the [Docker Compose judge quickstart](JUDGE-QUICKSTART.md) for the
+portable standard-provider path. The [evidence-backed demo summary](DEMO-EVIDENCE.md)
+shows exactly what the native execution proved and what remains untested.
+Both provide English instructions and make no claim of production alerting.
+
+## One-command native contest golden path
+
+For a real Grok-backed AI Hub agent invocation with native deterministic policy,
+complete receipt/outbox checks and an independently proven no-reinference replay,
+use [GOLDEN-PATH.md](GOLDEN-PATH.md). This runs a fresh, network-isolated,
+disposable AI Hub 154 instance and collects private evidence. It requires an
+already-authenticated host Grok CLI; it does not transmit provider credentials
+into the container or enable real-world alerts.
+
 ## Required image: InterSystems AI Hub Community 2026.3.0AI.154.0
 
 **Do not use 162** for the contest, even if AI Hub public examples describe it. Download `iris-community-2026.3.0AI.154.0-docker.tar.gz` from the [InterSystems AI Hub EAP portal](https://evaluation.intersystems.com/Eval/early-access/AIHub). The image is gated by the EAP portal and must **not** be pushed, rebundled, or redistributed publicly.
@@ -68,7 +84,7 @@ References: [AI Hub EAP](https://github.com/intersystems-community/ai-hub-eap), 
 
 - Synthetic events; in-IRIS local queue only; no actual SMS, vibration, lighting, or emergency dispatch.
 - Receipt is a digest of canonical input/decision metadata, not an external attestation or an immutable signed receipt. The local demo ledger is not tamper-evident.
-- Build-154 compilation, native policy checks, fail-closed live production tests, and fixture-based successful queue/receipt paths are proven. The contest still needs a genuine live AI Hub agent decision, real failure/restart recovery tests, and submission artifacts.
+- Native build-154 compilation, policy checks, fail-closed live tests, genuine Grok-backed AI Hub inference, and an isolated worker-SIGKILL recovery experiment have evidence. The golden-path runner demonstrates genuine inference and identical replay together without re-inference; SIGKILL and operator recovery are **separate evidence**, not part of that golden path. Contest listing/video artifacts and unattended reliability work remain outstanding.
 - AI Hub APIs are EAP/pre-release and may differ from the latest public SDK documentation; verify compilation on build 154.
 
 

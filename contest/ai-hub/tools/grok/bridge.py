@@ -76,6 +76,7 @@ class Handler(BaseHTTPRequestHandler):
             signal, text = synthetic_signal(json.loads(self.rfile.read(n)))
         except (ValueError, TypeError, UnicodeError):
             return self.respond(400, {"error": {"message": "invalid synthetic request"}})
+        print(json.dumps({"event":"model_request_started","signal":signal}), flush=True)
         prompt = ("This is a synthetic accessibility-routing evaluation, not a real emergency. "
                   "Do not use tools or web search. Reply with one uppercase token only: "
                   "VISUAL, HAPTIC, BOTH, or REVIEW.\n" + text)
