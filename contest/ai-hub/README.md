@@ -22,6 +22,13 @@ flowchart LR
 
 Signals are `SMOKE`, `BABY_CRY`, `DOORBELL`, `LAUNDRY`. The AI agent proposes `VISUAL`, `HAPTIC`, `BOTH` or `REVIEW`. Smoke and baby-cry signals are **forced to BOTH**, regardless of weaker model proposals. The model has no tools capable of bypassing that rule. No credentials, no decision, no delivery. The demo queue is not a notification service.
 
+## For contest judges and reviewers
+
+Start with the [Docker Compose judge quickstart](JUDGE-QUICKSTART.md) for the
+portable standard-provider path. The [evidence-backed demo summary](DEMO-EVIDENCE.md)
+shows exactly what the native execution proved and what remains untested.
+Both provide English instructions and make no claim of production alerting.
+
 ## One-command native contest golden path
 
 For a real Grok-backed AI Hub agent invocation with native deterministic policy,

@@ -1,4 +1,6 @@
 zn "USER"
+set activeName="",active=##class(Ens.Director).IsProductionRunning(.activeName)
+if active {if activeName="Anvil.Interop.Production" {write "ANVIL INTEROP PRODUCTION ALREADY RUNNING; CLASSES NOT RECOMPILED",! halt} else {write "ANVIL INTEROP INSTALL BLOCKED: another production is active",! halt}}
 set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Alert.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
 set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Dispatch.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
 set sc=$SYSTEM.OBJ.Load("/opt/iris-anvil/src/Anvil/Interop/Result.cls","ck") if '$SYSTEM.Status.IsOK(sc) {write $SYSTEM.Status.GetErrorText(sc),! halt}
